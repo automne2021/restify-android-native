@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Restify</string>
+
+    <string name="bottom_nav_home">Home</string>
+    <string name="bottom_nav_news">News</string>
+    <string name="bottom_nav_video">Video</string>
+    <string name="bottom_nav_model3d">3D</string>
+    <string name="bottom_nav_game">Game</string>
+
+    <string name="home_greeting">Rest, chief!</string>
+    <string name="home_sub_greeting">Hope your day\'s going well</string>
+    <string name="home_game_on">Game on!</string>
+    
+    <string name="home_card_breaking_news">Breaking News</string>
+    <string name="home_card_watch_videos">Watch Videos</string>
+    <string name="home_card_3d_models">3D Model</string>
+    <string name="home_card_games">Tic Tac Toe</string>
+</resources>

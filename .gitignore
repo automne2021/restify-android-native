@@ -1,0 +1,65 @@
+### Android Studio & Jetpack Compose ###
+
+# Build files
+/build/
+**/build/
+out/
+
+# Gradle
+.gradle/
+local.properties
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# APK / Bundle
+*.apk
+*.aab
+*.ap_
+
+# Generated files
+bin/
+gen/
+obj/
+.externalNativeBuild/
+
+# IDE files
+.idea/
+*.iml
+
+# Logs
+*.log
+
+# Keystore (never commit signing info)
+*.jks
+*.keystore
+.signing/
+
+# Google Services (keep commented if using Firebase)
+# google-services.json
+
+# Jetpack Compose Previews cache
+/.compose-cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# NDK / CMake build
+.cxx/
+*.o
+*.so
+
+# Tests
+/reports/
+
+# Ignore crashlytics / fabric configs
+crashlytics.properties
+fabric.properties
+com_crashlytics_export_strings.xml
+
+# Ignore captures
+captures/
+
+# Misc
+*.swp
+*~
