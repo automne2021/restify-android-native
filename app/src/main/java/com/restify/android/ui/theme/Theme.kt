@@ -13,7 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
     primary = Orange,
-    onPrimary = Black,
+    onPrimary = White,
 
     secondary = Beige,
     onSecondary = Black,
@@ -32,7 +32,7 @@ private val DarkColorScheme = darkColorScheme(
 
 private val LightColorScheme = lightColorScheme(
     primary = Orange,
-    onPrimary = Black, //orange button, black text
+    onPrimary = White, //orange button, black text
 
     secondary = Beige,
     onSecondary = Black, //beige button, black text
