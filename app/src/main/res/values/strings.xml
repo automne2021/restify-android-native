@@ -15,4 +15,30 @@
     <string name="home_card_watch_videos">Watch Videos</string>
     <string name="home_card_3d_models">3D Model</string>
     <string name="home_card_games">Tic Tac Toe</string>
+
+    <string name="terms_of_service_content">
+        ⚠️ <b>IMPORTANT:</b>\n
+        ⚠️ <b>EDUCATIONAL PROJECT DISCLAIMER ⚠️</b>\n
+        <b>PLEASE READ THIS SECTION FIRST.</b>\n
+        This application was developed solely as an assignment for the Mobile Application Development course at Ho Chi Minh City University of Technology.\n
+        By accessing or reviewing this application, you acknowledge and agree to the following:\n
+        <b>ACADEMIC PURPOSE ONLY:</b> This application is NOT a commercial product. It is a prototype created to demonstrate coding and design skills for grading purposes.\n
+        <b>TEMPORARY EXISTENCE:</b> This project is ephemeral. All data, hosting, and access to this application will be permanently deleted upon the completion of the course.\n
+        <b>PROHIBITION ON DISTRIBUTION:</b> You strictly may not copy, reproduce, distribute, or repurpose the design, logic, or assets of this application for any commercial or external use.\n
+        <b>1. Content and Assets</b>\n
+            All materials contained within this application, including but not limited to:\n
+            - Illustrations and Graphics\n
+            - Icons and Logos\n
+            - Written Content\n
+            - UI/UX Design Patterns\n
+            Are utilized solely for the context of this specific course assignment.\n
+            Ownership: Assets created by the developer remain the intellectual property of the student for grading purposes. Third-party assets (if any) are used under fair use for education.\n
+            No Commercial Value: These assets serve no commercial function and must not be extracted or used elsewhere.\n
+        <b>2. User Conduct</b>\n
+            As this is a simulation, users (including graders and peer reviewers) agree:\n
+            No Real Data: Do not enter real sensitive personal information (such as actual credit card numbers, real passwords, or private home addresses) into this application.\n
+            No Expectation of Service: The developer guarantees no uptime, maintenance, or bug fixes beyond the scope of the assignment requirements.\n
+        <b>3. Termination</b>\n
+            The developer reserves the right to take down this application and delete the associated repository/database immediately after the assignment grade is finalized. No backups will be provided to users.\n
+    </string>
 </resources>

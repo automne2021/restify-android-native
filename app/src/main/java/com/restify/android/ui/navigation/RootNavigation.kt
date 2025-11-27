@@ -1,5 +1,10 @@
+package com.restify.android.ui.navigation
+
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.internal.composableLambdaN
 import androidx.core.splashscreen.SplashScreen
@@ -37,7 +42,12 @@ fun RootNavigationGraph() {
         composable(
             route = RootScreen.Welcome.route,
             enterTransition = { fadeIn() },
-            exitTransition = { fadeOut() }
+            exitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { -it },
+                    animationSpec = tween(700)
+                ) + fadeOut()
+            }
         ) {
             WelcomeScreen(
                 onGetStartedClick = {
@@ -51,7 +61,12 @@ fun RootNavigationGraph() {
         // Main Screen
         composable(
             route = RootScreen.Main.route,
-            enterTransition = { fadeIn() }
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { it }, // Start completely below the screen
+                    animationSpec = tween(700)
+                ) + fadeIn(animationSpec = tween(700))
+            }
         ) {
             MainScreen()
         }

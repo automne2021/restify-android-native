@@ -19,6 +19,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import com.restify.android.R
+import com.restify.android.ui.theme.Black
+import com.restify.android.ui.theme.Cream
 
 @Composable
 fun SplashScreen(onSplashFinished: () -> Unit) {
@@ -32,17 +34,17 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(Cream),
         contentAlignment = Alignment.Center
     ) {
         // Replace with your actual Logo or Background Shapes
         Image(painter = painterResource(id = R.drawable.bg), contentDescription = null, modifier = Modifier.fillMaxSize())
 
         Text(
-            text = "R E S T I F Y",
+            text = "RESTIFY",
             fontSize = 40.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
+            color = Black,
         )
     }
 }

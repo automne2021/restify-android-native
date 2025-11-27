@@ -12,11 +12,15 @@ import androidx.compose.material3.Text
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -76,13 +80,8 @@ fun BottomNavigationBar(navHostController: NavHostController) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier
-            .shadow(elevation = 17.dp, spotColor = Color(0x1A54575C), ambientColor = Color(0x1A54575C))
-            .padding(
-                start = 24.5.dp,
-                end = 24.5.dp,
-                top = 10.dp,
-                bottom = 21.dp
-            ),
+            .shadow(elevation = 17.dp, spotColor = Color(0x1A54575C), ambientColor = Color(0x1A54575C)),
+        windowInsets = WindowInsets.navigationBars.add(WindowInsets(bottom = 42.dp, top = 10.dp, left = 24.5.dp, right = 24.5.dp))
     ) {
         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
@@ -91,8 +90,7 @@ fun BottomNavigationBar(navHostController: NavHostController) {
             val isSelected = currentRoute == item.route
 
             NavigationBarItem(
-                modifier = Modifier
-                ,
+                modifier = Modifier,
                 label = { },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.onPrimary,
