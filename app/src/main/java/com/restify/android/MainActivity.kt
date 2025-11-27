@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.restify.android.ui.navigation.MainScreen
+import com.restify.android.ui.navigation.RootNavigationGraph
 import com.restify.android.ui.theme.RestifyTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,7 +21,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             RestifyTheme(dynamicColor = false) {
-                MainScreen()
+                // MainScreen()
+                RootNavigationGraph()
             }
         }
     }

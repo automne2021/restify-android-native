@@ -7,6 +7,12 @@ import com.restify.android.R
 
 // chứa sealed class Screen, m cmt bằng English thì xóa cmt này của t nha
 
+sealed class RootScreen(val route: String) {
+    object Splash : RootScreen("splash")
+    object Welcome : RootScreen("welcome")
+    object Main : RootScreen("main_graph")
+}
+
 sealed class Screen(val route: String, val title: String, @DrawableRes val icon: Int) {
     object Home: Screen(route = "home", title = "Home", icon = R.drawable.ic_home)
     object News: Screen(route = "news", title = "News", icon = R.drawable.ic_news)
