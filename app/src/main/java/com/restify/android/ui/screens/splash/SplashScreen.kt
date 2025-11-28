@@ -15,12 +15,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import com.restify.android.R
 import com.restify.android.ui.theme.Black
 import com.restify.android.ui.theme.Cream
+import com.restify.android.ui.theme.RobotoCondensedFamily
 
 @Composable
 fun SplashScreen(onSplashFinished: () -> Unit) {
@@ -42,9 +45,16 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
 
         Text(
             text = "RESTIFY",
-            fontSize = 40.sp,
-            fontWeight = FontWeight.Bold,
-            color = Black,
+            style = TextStyle(
+                fontSize = 40.sp,
+                lineHeight = 43.24.sp,
+                fontFamily = RobotoCondensedFamily,
+                fontWeight = FontWeight(700),
+                color = Black,
+
+                textAlign = TextAlign.Center,
+                letterSpacing = 10.sp,
+            )
         )
     }
 }
