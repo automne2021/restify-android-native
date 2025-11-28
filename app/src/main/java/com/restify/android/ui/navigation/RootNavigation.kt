@@ -45,8 +45,8 @@ fun RootNavigationGraph() {
             exitTransition = {
                 slideOutVertically(
                     targetOffsetY = { -it },
-                    animationSpec = tween(700)
-                ) + fadeOut()
+                    animationSpec = tween(400)
+                )
             }
         ) {
             WelcomeScreen(
@@ -64,8 +64,8 @@ fun RootNavigationGraph() {
             enterTransition = {
                 slideInVertically(
                     initialOffsetY = { it }, // Start completely below the screen
-                    animationSpec = tween(700)
-                ) + fadeIn(animationSpec = tween(700))
+                    animationSpec = tween(400)
+                )
             }
         ) {
             MainScreen()

@@ -33,6 +33,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -193,6 +195,8 @@ fun HomeScreen(navController: NavController) {
             subtitle = "PLAY NOW",
             onClick = { navigateToTab(navController, Screen.Game.route) }
         )
+
+        Spacer(modifier = Modifier.height(60.dp))
     }
 }
 
@@ -207,6 +211,12 @@ fun HomeGridCard(
     Box(
         modifier = modifier
             .height(210.dp)
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(10.dp),
+                spotColor = Color.Black.copy(alpha = 0.25f),
+                ambientColor = Color.Black.copy(alpha = 0.25f)
+            )
             .clip(RoundedCornerShape(10.dp))
             .background(MaterialTheme.colorScheme.secondary)
     ) {
@@ -294,6 +304,12 @@ fun WideActionCard(
         modifier = Modifier
             .fillMaxWidth()
             .height(95.dp)
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(10.dp),
+                spotColor = Color.Black.copy(alpha = 0.25f),
+                ambientColor = Color.Black.copy(alpha = 0.25f)
+            )
             .clip(RoundedCornerShape(10.dp))
             .background(MaterialTheme.colorScheme.primary)
             .padding(horizontal = 30.dp),
@@ -304,13 +320,13 @@ fun WideActionCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp),
-                color = MaterialTheme.colorScheme.onPrimary
+                color = Black
             )
             Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                color = Black
+                color = MaterialTheme.colorScheme.onPrimary
             )
         }
 
