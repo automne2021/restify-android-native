@@ -1,5 +1,8 @@
 package com.restify.android.ui.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -56,10 +59,68 @@ fun MainScreen() {
     }
 }
 
+val screenOrder = listOf(
+    Screen.Home.route,
+    Screen.News.route,
+    Screen.Video.route,
+    Screen.Model3D.route,
+    Screen.Game.route
+)
+
+fun getRouteIndex(route: String?): Int = screenOrder.indexOf(route).takeIf { it != -1 } ?: 0
+
 @Composable
 fun AppNavHost(navHostController: NavHostController){
-    NavHost(navController = navHostController, startDestination = Screen.Home.route) {
-        composable(Screen.Home.route) { HomeScreen() }
+    NavHost(
+        navController = navHostController,
+        startDestination = Screen.Home.route,
+        // Define the Enter Transition (New Screen Appearing)
+        enterTransition = {
+            val initialIndex = getRouteIndex(initialState.destination.route)
+            val targetIndex = getRouteIndex(targetState.destination.route)
+
+            // If going to a higher index (Home -> News), slide in from Right
+            if (targetIndex > initialIndex) {
+                slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }, animationSpec = tween(500))
+            } else {
+                // If going to a lower index (News -> Home), slide in from Left
+                slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }, animationSpec = tween(500))
+            }
+        },
+        // Define the Exit Transition (Old Screen Disappearing)
+        exitTransition = {
+            val initialIndex = getRouteIndex(initialState.destination.route)
+            val targetIndex = getRouteIndex(targetState.destination.route)
+
+            // If going to a higher index, slide out to Left
+            if (targetIndex > initialIndex) {
+                slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }, animationSpec = tween(500))
+            } else {
+                // If going to a lower index, slide out to Right
+                slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }, animationSpec = tween(500))
+            }
+        },
+        // Define Pop Transitions (Back Button behavior) - mirrors the above
+        popEnterTransition = {
+            val initialIndex = getRouteIndex(initialState.destination.route)
+            val targetIndex = getRouteIndex(targetState.destination.route)
+            if (targetIndex > initialIndex) {
+                slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }, animationSpec = tween(500))
+            } else {
+                slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }, animationSpec = tween(500))
+            }
+        },
+        popExitTransition = {
+            val initialIndex = getRouteIndex(initialState.destination.route)
+            val targetIndex = getRouteIndex(targetState.destination.route)
+            if (targetIndex > initialIndex) {
+                slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }, animationSpec = tween(500))
+            } else {
+                slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }, animationSpec = tween(500))
+            }
+        }
+    ) {
+        composable(Screen.Home.route) { HomeScreen(navHostController) }
         composable(Screen.News.route) { NewsScreen() }
         composable(Screen.Video.route) { VideoScreen() }
         composable(Screen.Model3D.route) { Model3DScreen() }
