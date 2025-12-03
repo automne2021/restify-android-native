@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.sp
 import com.restify.android.R
 import com.restify.android.ui.theme.Black
 import com.restify.android.ui.theme.Cream
+import com.restify.android.ui.theme.Orange
+import com.restify.android.ui.theme.Gray
 import com.restify.android.ui.theme.RobotoCondensedFamily
 
 @OptIn(ExperimentalMaterial3Api::class) // Needed for ModalBottomSheet
@@ -80,7 +82,7 @@ fun WelcomeScreen(onGetStartedClick: () -> Unit) {
                 fontSize = 16.sp,
                 fontFamily = RobotoCondensedFamily,
                 fontWeight = FontWeight(300),
-                color = Black,
+                color = Gray,
                 textAlign = TextAlign.Center,
             )
         )
@@ -149,7 +151,7 @@ fun WelcomeScreen(onGetStartedClick: () -> Unit) {
                         onCheckedChange = { isChecked = it },
                         colors = CheckboxDefaults.colors(
                             checkedColor = Color.White,
-                            checkmarkColor = Color.Black,
+                            checkmarkColor = Orange,
                             uncheckedColor = Color.White
                         )
                     )

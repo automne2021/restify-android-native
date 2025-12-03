@@ -1,8 +1,6 @@
 package com.restify.android
 
-// import com.restify.android.ui.navigation.MainScreen
 import android.os.Bundle
-import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -24,7 +22,7 @@ class MainActivity : ComponentActivity() {
                 RootNavigationGraph()
             }
         }
-        actionBar?.hide();
+        actionBar?.hide()
     }
 }
 

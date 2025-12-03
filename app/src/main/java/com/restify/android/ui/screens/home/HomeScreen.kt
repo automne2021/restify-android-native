@@ -17,8 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -35,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -43,29 +40,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.restify.android.R
-import com.restify.android.ui.navigation.Screen
 import com.restify.android.ui.theme.Black
 import com.restify.android.ui.theme.Cream
-import com.restify.android.ui.theme.Gray
 import com.restify.android.ui.theme.RobotoCondensedFamily
-import com.restify.android.ui.theme.White
-
-fun navigateToTab(navController: NavController, route: String) {
-    navController.navigate(route) {
-        popUpTo(navController.graph.findStartDestination().id) {
-            saveState = true
-        }
-
-        launchSingleTop = true
-        restoreState = true
-    }
-}
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(onNavigationToTab: (Int) -> Unit) {
     val scrollState = rememberScrollState()
 
     var showInfoDialog by remember { mutableStateOf(false) }
@@ -153,7 +134,7 @@ fun HomeScreen(navController: NavController) {
                 title = stringResource(R.string.home_card_breaking_news),
                 subtitle = "READ NOW",
                 imageRes = R.drawable.news,
-                onClick = { navigateToTab(navController, Screen.News.route) }
+                onClick = { onNavigationToTab(1) }
             )
             // Video Card
             HomeGridCard(
@@ -161,7 +142,7 @@ fun HomeScreen(navController: NavController) {
                 title = stringResource(R.string.home_card_watch_videos),
                 subtitle = "WATCH NOW",
                 imageRes = R.drawable.video,
-                onClick = { navigateToTab(navController, Screen.Video.route) }
+                onClick = { onNavigationToTab(2) }
             )
         }
 
@@ -171,7 +152,7 @@ fun HomeScreen(navController: NavController) {
         WideActionCard(
             title = stringResource(R.string.home_card_3d_models),
             subtitle = "PLAY NOW",
-            onClick = { navigateToTab(navController, Screen.Model3D.route) }
+            onClick = { onNavigationToTab(3) }
         )
 
         Spacer(modifier = Modifier.height(34.dp))
@@ -193,7 +174,7 @@ fun HomeScreen(navController: NavController) {
         WideActionCard(
             title = stringResource(R.string.home_card_games),
             subtitle = "PLAY NOW",
-            onClick = { navigateToTab(navController, Screen.Game.route) }
+            onClick = { onNavigationToTab(4) }
         )
 
         Spacer(modifier = Modifier.height(60.dp))
@@ -316,7 +297,7 @@ fun WideActionCard(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column() {
+        Column {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp),

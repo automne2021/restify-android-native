@@ -1,11 +1,7 @@
 package com.restify.android.ui.navigation
 
 import androidx.annotation.DrawableRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import com.restify.android.R
-
-// chứa sealed class Screen, m cmt bằng English thì xóa cmt này của t nha
 
 sealed class RootScreen(val route: String) {
     object Splash : RootScreen("splash")

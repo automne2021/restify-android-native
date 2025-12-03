@@ -6,15 +6,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.internal.composableLambdaN
-import androidx.core.splashscreen.SplashScreen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.restify.android.ui.screens.splash.SplashScreen
 import com.restify.android.ui.screens.welcome.WelcomeScreen
-import com.restify.android.ui.navigation.MainScreen
-import com.restify.android.ui.navigation.RootScreen
 
 @Composable
 fun RootNavigationGraph() {
