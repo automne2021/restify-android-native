@@ -1,6 +1,10 @@
 package com.restify.android.ui.screens.model3d
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -8,6 +12,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,10 +26,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import com.restify.android.R
 import com.restify.android.ui.theme.*
-import io.github.sceneview.SceneView
+import io.github.sceneview.ar.ARScene
+import io.github.sceneview.ar.arcore.createAnchorOrNull
+import io.github.sceneview.ar.getDescription
+import io.github.sceneview.ar.node.AnchorNode
+import io.github.sceneview.rememberOnGestureListener
+import com.google.ar.core.Frame
+import com.google.ar.core.Plane
+import com.google.ar.core.HitResult
+import io.github.sceneview.loaders.MaterialLoader
+import io.github.sceneview.loaders.ModelLoader
 import io.github.sceneview.node.ModelNode
+import io.github.sceneview.rememberEngine
+import io.github.sceneview.rememberMaterialLoader
+import io.github.sceneview.rememberModelLoader
+import io.github.sceneview.rememberNodes
 import kotlinx.coroutines.launch
 import com.restify.android.ui.theme.Black
 import com.restify.android.ui.theme.Orange
@@ -37,7 +56,27 @@ fun Model3DScreen() {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var selectedModel by remember { mutableStateOf(modelCategories[0].items[0]) }
+    var isArMode by remember { mutableStateOf(false) }
+    var hasCameraPermission by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    // Check camera permission
+    LaunchedEffect(Unit) {
+        hasCameraPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    // Camera permission launcher
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        hasCameraPermission = isGranted
+        if (isGranted) {
+            isArMode = true
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -77,13 +116,20 @@ fun Model3DScreen() {
                 .fillMaxSize()
                 .background(Black)
         ) {
-            Model3DViewer(
-                model = selectedModel,
-                context = context,
-                modifier = Modifier.fillMaxSize()
-            )
+            // Show AR or 3D viewer based on mode
+            if (isArMode && hasCameraPermission) {
+                ArModelViewer(
+                    model = selectedModel,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Model3DViewer(
+                    model = selectedModel,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
 
-            // Menu Button with proper padding
+            // Menu Button and AR Button with proper padding
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -105,6 +151,34 @@ fun Model3DScreen() {
                         modifier = Modifier.size(30.dp)
                     )
                 }
+
+                // AR Toggle Button
+                IconButton(
+                    onClick = {
+                        if (!isArMode) {
+                            // Request camera permission if not granted
+                            if (hasCameraPermission) {
+                                isArMode = true
+                            } else {
+                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                        } else {
+                            isArMode = false
+                        }
+                    },
+                    modifier = Modifier
+                        .background(
+                            color = if (isArMode) Orange else Cream,
+                            shape = CircleShape
+                        )
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_ar),
+                        contentDescription = "AR Mode",
+                        tint = Black,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
 
             Box(
@@ -120,7 +194,7 @@ fun Model3DScreen() {
                     modifier = Modifier.border(1.dp, Cream, RoundedCornerShape(5.dp))
                 ) {
                     Text(
-                        text = "Drag to rotate  •  Pinch to zoom",
+                        text = if (isArMode) "Tap to place model  •  Pinch to scale" else "Drag to rotate  •  Pinch to zoom",
                         style = TextStyle(
                             color = Cream,
                             fontSize = 14.sp
@@ -204,88 +278,125 @@ fun ExpandableCategory(
 }
 
 @Composable
-fun Model3DViewer(
+fun ArModelViewer(
     model: Model3DItem,
-    context: Context,
     modifier: Modifier = Modifier
 ) {
-    var sceneView by remember { mutableStateOf<SceneView?>(null) }
-    var currentModelNode by remember { mutableStateOf<ModelNode?>(null) }
-    val modelKey = remember(model.path) { model.path }
+    val engine = rememberEngine()
+    val modelLoader = rememberModelLoader(engine)
+    val childNodes = rememberNodes()
+    var modelNode by remember { mutableStateOf<ModelNode?>(null) }
 
-    LaunchedEffect(modelKey) {
-        sceneView?.let { scene ->
-            // Properly remove old model node
-            currentModelNode?.let { oldNode ->
-                try {
-                    // Clear the model node completely
-                    scene.childNodes.forEach { node ->
-                        scene.removeChildNode(node)
-                        node.destroy()
+    // We need to capture the current frame to perform hit tests on tap
+    var currentFrame by remember { mutableStateOf<Frame?>(null) }
+
+    LaunchedEffect(model.path) {
+        modelNode?.destroy()
+        modelLoader.loadModelInstance(model.path)?.let { modelInstance ->
+            modelNode = ModelNode(
+                modelInstance = modelInstance,
+                scaleToUnits = 0.5f
+            ).apply {
+                isEditable = true
+            }
+        }
+    }
+
+    Box(modifier = modifier) {
+        ARScene(
+            modifier = Modifier.fillMaxSize(),
+            childNodes = childNodes,
+            engine = engine,
+            modelLoader = modelLoader,
+            planeRenderer = true,
+            onSessionUpdated = { session, frame ->
+                // Keep the frame updated so we can use it in the gesture listener
+                currentFrame = frame
+            },
+            onGestureListener = rememberOnGestureListener(
+                onSingleTapConfirmed = { motionEvent, node ->
+                    // If user tapped on an empty space (node == null)
+                    if (node == null) {
+                        // Use the captured frame to perform a hit test
+                        currentFrame?.hitTest(motionEvent)?.firstOrNull { hit ->
+                            // Check if we hit a Plane
+                            hit.trackable is Plane
+                        }?.let { hitResult ->
+                            // Create the anchor
+                            hitResult.createAnchorOrNull()?.let { anchor ->
+                                modelNode?.let { node ->
+                                    // If we haven't placed the model yet, add it
+                                    if (childNodes.isEmpty()) {
+                                        childNodes += AnchorNode(
+                                            engine = engine,
+                                            anchor = anchor
+                                        ).apply {
+                                            addChildNode(node)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
                 }
-                currentModelNode = null
-            }
+            )
+        )
+    }
 
-            try {
-                val newModelInstance = scene.modelLoader.createModelInstance(
-                    assetFileLocation = model.path
-                )
+    DisposableEffect(Unit) {
+        onDispose {
+            modelNode?.destroy()
+            childNodes.clear()
+        }
+    }
+}
 
-                val newNode = ModelNode(
-                    modelInstance = newModelInstance,
-                    scaleToUnits = 1f
-                ).apply {
-                    isEditable = true
-                }
-                scene.addChildNode(newNode)
-                currentModelNode = newNode
-            } catch (e: Exception) {
-                e.printStackTrace()
+@Composable
+fun Model3DViewer(
+    model: Model3DItem,
+    modifier: Modifier = Modifier
+) {
+    val engine = rememberEngine()
+    val modelLoader = rememberModelLoader(engine)
+    val materialLoader = rememberMaterialLoader(engine)
+
+    var modelNode by remember { mutableStateOf<ModelNode?>(null) }
+    val childNodes = rememberNodes()
+
+    LaunchedEffect(model.path) {
+        // Clear old model
+        modelNode?.let { oldNode ->
+            childNodes.remove(oldNode)
+            oldNode.destroy()
+        }
+
+        // Load new model
+        modelLoader.loadModelInstance(model.path)?.let { modelInstance ->
+            val newNode = ModelNode(
+                modelInstance = modelInstance,
+                scaleToUnits = 1f
+            ).apply {
+                isEditable = true
+                // Move the model down vertically
+                position = io.github.sceneview.math.Position(0f, -0.5f, 0f)
             }
+            childNodes += newNode
+            modelNode = newNode
         }
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            try {
-                currentModelNode?.let { node ->
-                    sceneView?.childNodes?.forEach { n ->
-                        sceneView?.removeChildNode(n)
-                        n.destroy()
-                    }
-                }
-                currentModelNode = null
-                sceneView?.destroy()
-                sceneView = null
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            modelNode?.destroy()
+            childNodes.clear()
         }
     }
 
-    AndroidView(
-        factory = { ctx ->
-            SceneView(ctx).apply {
-                sceneView = this
-            }
-        },
+    io.github.sceneview.Scene(
         modifier = modifier,
-        onRelease = { view ->
-            try {
-                currentModelNode?.let { node ->
-                    view.childNodes.forEach { n ->
-                        view.removeChildNode(n)
-                        n.destroy()
-                    }
-                }
-                currentModelNode = null
-                view.destroy()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        engine = engine,
+        modelLoader = modelLoader,
+        childNodes = childNodes,
+        onViewUpdated = { }
     )
 }
