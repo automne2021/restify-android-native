@@ -55,27 +55,26 @@ fun MainScreen() {
                 onTabSelected = { selectedIndex = it }
             )
         }
-    ) {
-        innerPadding ->
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .statusBarsPadding()
         ) {
-            if (selectedIndex == 0) {
+            // Use KeepAliveScreen for all tabs to prevent recreation
+            KeepAliveScreen(visible = selectedIndex == 0) {
                 HomeScreen(onNavigationToTab = { index ->
                     selectedIndex = index
                 })
-            }
-            if (selectedIndex == 3) {
-                Model3DScreen()
             }
             KeepAliveScreen(visible = selectedIndex == 1) {
                 NewsScreen()
             }
             KeepAliveScreen(visible = selectedIndex == 2) {
                 VideoScreen()
+            }
+            KeepAliveScreen(visible = selectedIndex == 3) {
+                Model3DScreen()
             }
             KeepAliveScreen(visible = selectedIndex == 4) {
                 GameScreen()
