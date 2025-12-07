@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -101,7 +102,7 @@ fun Model3DScreen() {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_menu),
                         contentDescription = "Menu",
-                        tint = Cream,
+                        tint = Gray,
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -157,7 +158,7 @@ fun ExpandableCategory(
             Icon(
                 painter = painterResource(id = category.iconRes),
                 contentDescription = null,
-                tint = Black,
+                tint = Color.Unspecified,
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -171,11 +172,11 @@ fun ExpandableCategory(
                 modifier = Modifier.weight(1f)
             )
             Icon(
-                painter = painterResource(id = R.drawable.ic_info),
+                painter = painterResource(id = R.drawable.ic_chevron_down),
                 contentDescription = "Expand",
                 tint = Gray,
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(16.dp)
                     .rotate(rotationState)
             )
         }
