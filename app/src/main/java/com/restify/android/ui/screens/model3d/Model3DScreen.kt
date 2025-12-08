@@ -76,7 +76,7 @@ fun Model3DScreen() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Black)
+                .background(Gray)
         ) {
             Model3DViewer(
                 model = selectedModel,
