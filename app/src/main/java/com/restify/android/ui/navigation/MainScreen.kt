@@ -15,9 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.layout.size
@@ -34,8 +32,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.runtime.mutableStateOf
 import com.restify.android.ui.screens.game.GameScreen
 import com.restify.android.ui.screens.home.HomeScreen
+import com.restify.android.ui.screens.home.InfoScreen
 import com.restify.android.ui.screens.model3d.Model3DScreen
 import com.restify.android.ui.screens.news.NewsScreen
 import com.restify.android.ui.screens.video.VideoScreen
@@ -43,17 +43,24 @@ import com.restify.android.ui.screens.video.VideoScreen
 @Composable
 fun MainScreen() {
     var selectedIndex by remember { mutableIntStateOf(0) }
+    var showInfoScreen by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = selectedIndex != 0) {
+    BackHandler(enabled = showInfoScreen) {
+        showInfoScreen = false
+    }
+
+    BackHandler(enabled = !showInfoScreen && selectedIndex != 0) {
         selectedIndex = 0
     }
 
     Scaffold(
         bottomBar = {
-            BottomNavigationBar(
-                selectedIndex = selectedIndex,
-                onTabSelected = { selectedIndex = it }
-            )
+            if (!showInfoScreen) {
+                BottomNavigationBar(
+                    selectedIndex = selectedIndex,
+                    onTabSelected = { selectedIndex = it }
+                )
+            }
         }
     ) { innerPadding ->
         Box(
@@ -61,25 +68,32 @@ fun MainScreen() {
                 .fillMaxSize()
                 .padding(innerPadding)
                 .statusBarsPadding()
-                .padding(top = 35.dp)
+                .padding(top = if (showInfoScreen) 0.dp else 25.dp)
         ) {
-            // Use KeepAliveScreen for all tabs to prevent recreation
-            KeepAliveScreen(visible = selectedIndex == 0) {
-                HomeScreen(onNavigationToTab = { index ->
-                    selectedIndex = index
-                })
-            }
-            KeepAliveScreen(visible = selectedIndex == 1) {
-                NewsScreen()
-            }
-            KeepAliveScreen(visible = selectedIndex == 2) {
-                VideoScreen()
-            }
-            KeepAliveScreen(visible = selectedIndex == 3) {
-                Model3DScreen()
-            }
-            KeepAliveScreen(visible = selectedIndex == 4) {
-                GameScreen()
+            if (showInfoScreen) {
+                InfoScreen(onBack = { showInfoScreen = false })
+            } else {
+                // Use KeepAliveScreen for all tabs to prevent recreation
+                KeepAliveScreen(visible = selectedIndex == 0) {
+                    HomeScreen(
+                        onNavigationToTab = { index ->
+                            selectedIndex = index
+                        },
+                        onShowInfo = { showInfoScreen = true }
+                    )
+                }
+                KeepAliveScreen(visible = selectedIndex == 1) {
+                    NewsScreen()
+                }
+                KeepAliveScreen(visible = selectedIndex == 2) {
+                    VideoScreen()
+                }
+                KeepAliveScreen(visible = selectedIndex == 3) {
+                    Model3DScreen()
+                }
+                KeepAliveScreen(visible = selectedIndex == 4) {
+                    GameScreen()
+                }
             }
         }
     }
@@ -117,7 +131,8 @@ fun BottomNavigationBar(
         modifier = Modifier
             // 1. Move the spacing logic here using padding
             .padding(
-                bottom = 42.dp,
+                bottom = 10.dp,
+                top = 0.dp
             )
             .shadow(
                 elevation = 17.dp,

@@ -194,7 +194,7 @@ fun ActiveGameContent(state: GameState, viewModel: GameViewModel) {
 fun GridItem(symbol: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .size(86.dp) // (320 - 40 padding - 40 spacing) / 3 approx
+            .size(80.dp) // (320 - 40 padding - 40 spacing) / 3 approx
             .shadow(4.dp, RoundedCornerShape(10.dp), spotColor = Orange)
             .background(Cream, RoundedCornerShape(10.dp))
             .clickable { onClick() },
