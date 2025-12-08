@@ -60,6 +60,8 @@ fun MainScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .statusBarsPadding()
+                .padding(top = 35.dp)
         ) {
             // Use KeepAliveScreen for all tabs to prevent recreation
             KeepAliveScreen(visible = selectedIndex == 0) {
@@ -113,21 +115,18 @@ fun BottomNavigationBar(
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier
+            // 1. Move the spacing logic here using padding
+            .padding(
+                bottom = 42.dp,
+                top = 10.dp
+            )
             .shadow(
                 elevation = 17.dp,
                 spotColor = Color(0x1A54575C),
                 ambientColor = Color(0x1A54575C)
             ),
-        windowInsets = WindowInsets.navigationBars.add(
-            WindowInsets(
-                bottom = 42.dp,
-                top = 10.dp,
-                left = 24.5.dp,
-                right = 24.5.dp
-            )
-        )
+        windowInsets = WindowInsets(left = 0.dp, bottom = 0.dp)
     ) {
-
         items.forEachIndexed { index, item ->
             val isSelected = selectedIndex == index
 
@@ -168,7 +167,7 @@ fun BottomNavigationBar(
                             color = if (isSelected) {
                                 MaterialTheme.colorScheme.primary
                             } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant // Gray
+                                MaterialTheme.colorScheme.onSurfaceVariant
                             }
                         )
                     }
@@ -179,6 +178,5 @@ fun BottomNavigationBar(
                 }
             )
         }
-
     }
 }
