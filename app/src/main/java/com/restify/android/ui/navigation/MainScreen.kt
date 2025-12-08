@@ -118,7 +118,6 @@ fun BottomNavigationBar(
             // 1. Move the spacing logic here using padding
             .padding(
                 bottom = 42.dp,
-                top = 10.dp
             )
             .shadow(
                 elevation = 17.dp,
