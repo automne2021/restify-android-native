@@ -10,21 +10,22 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,87 +40,103 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import com.restify.android.ui.theme.RobotoCondensedFamily
 
 @Composable
-fun InfoDialog(onDismiss: () -> Unit) {
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.background,
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
+fun InfoScreen(onBack: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        // --- Top Header with Back Button ---
+        Spacer(modifier = Modifier.height(37.dp))
+
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(24.dp)
-                    // Make the dialog scrollable if content is too long
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally
+            // --- Back Button ---
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.align(Alignment.CenterStart)
             ) {
-                // Header
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+
+            // --- Logo ---
+            Text(
+                text = "RESTIFY",
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontFamily = RobotoCondensedFamily,
+                    fontWeight = FontWeight(700),
+                    color = MaterialTheme.colorScheme.onBackground,
+                    letterSpacing = 5.sp,
+                ),
+                textAlign = TextAlign.Center
+            )
+        }
+
+        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(30.dp))
+
+        // --- About Us ---
+        InfoExpandableCard(title = "About Us") {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+
+                // Versions
+                AboutSectionHeader(icon = "", title = "Versions")
                 Text(
-                    text = "RESTIFY",
-                    style = TextStyle(
-                        fontSize = 18.sp,
-                        fontFamily = RobotoCondensedFamily,
-                        fontWeight = FontWeight(700),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        letterSpacing = 4.sp,
-                    ),
-                    modifier = Modifier.padding(bottom = 30.dp)
+                    text = stringResource(R.string.version_content),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp)
                 )
 
-                // --- About Us ---
-                InfoExpandableCard(title = "About Us") {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // About Restify
+                AboutSectionHeader(icon = "🚀", title = "About Restify")
+                AboutBodyText(stringResource(R.string.about_app_content))
 
-                        // Versions
-                        AboutSectionHeader(icon = "", title = "Versions")
-                        Text(
-                            text = stringResource(R.string.version_content),
-                            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp)
-                        )
+                // Meet the Team
+                AboutSectionHeader(icon = "👥", title = "Meet the Team")
+                AboutBodyText(stringResource(R.string.about_team_content))
+                AboutBodyText(stringResource(R.string.about_team_detailed_content))
 
-                        // About Restify
-                        AboutSectionHeader(icon = "🚀", title = "About Restify")
-                        AboutBodyText(stringResource(R.string.about_app_content))
+                // How We Built It
+                AboutSectionHeader(icon = "🛠️", title = "How We Built It")
+                AboutBodyText(stringResource(R.string.how_we_built_content))
 
-                        // Meet the Team
-                        AboutSectionHeader(icon = "👥", title = "Meet the Team")
-                        AboutBodyText(stringResource(R.string.about_team_content))
-                        AboutBodyText(stringResource(R.string.about_team_detailed_content))
-
-                        // How We Built It
-                        AboutSectionHeader(icon = "🛠️", title = "How We Built It")
-                        AboutBodyText(stringResource(R.string.how_we_built_content))
-
-                        // Disclaimer
-                        AboutSectionHeader(icon = "⚠️", title = "Important Disclaimer")
-                        AboutBodyText(stringResource(R.string.important_disclaimer))
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // --- Terms of Service (Simple Layout) ---
-                InfoExpandableCard(title = "Terms of Service") {
-                    Text(
-                        text = stringResource(R.string.terms_of_service_content),
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            fontFamily = RobotoCondensedFamily,
-                            fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    )
-                }
+                // Disclaimer
+                AboutSectionHeader(icon = "⚠️", title = "Important Disclaimer")
+                AboutBodyText(stringResource(R.string.important_disclaimer))
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // --- Terms of Service (Simple Layout) ---
+        InfoExpandableCard(title = "Terms of Service") {
+            Text(
+                text = stringResource(R.string.terms_of_service_content),
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontFamily = RobotoCondensedFamily,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
     }
 }
 

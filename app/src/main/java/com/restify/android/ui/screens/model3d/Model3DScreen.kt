@@ -116,7 +116,7 @@ fun Model3DScreen() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Black)
+                .background(Gray)
         ) {
             // 1. Hiển thị Viewer
             if (isArMode && hasCameraPermission) {
@@ -236,7 +236,7 @@ fun ExpandableCategory(
             Icon(
                 painter = painterResource(id = category.iconRes),
                 contentDescription = null,
-                tint = Black,
+                tint = Color.Unspecified,
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -254,7 +254,7 @@ fun ExpandableCategory(
                 contentDescription = "Expand",
                 tint = Gray,
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(16.dp)
                     .rotate(rotationState)
             )
         }

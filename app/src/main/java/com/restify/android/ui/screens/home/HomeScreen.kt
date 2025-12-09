@@ -24,10 +24,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,14 +42,11 @@ import com.restify.android.ui.theme.Cream
 import com.restify.android.ui.theme.RobotoCondensedFamily
 
 @Composable
-fun HomeScreen(onNavigationToTab: (Int) -> Unit) {
+fun HomeScreen(
+    onNavigationToTab: (Int) -> Unit,
+    onShowInfo: () -> Unit
+) {
     val scrollState = rememberScrollState()
-
-    var showInfoDialog by remember { mutableStateOf(false) }
-
-    if (showInfoDialog) {
-        InfoDialog (onDismiss = { showInfoDialog = false })
-    }
 
     Column(
         modifier = Modifier
@@ -84,7 +77,7 @@ fun HomeScreen(onNavigationToTab: (Int) -> Unit) {
             )
             // --- Info icon ---
             IconButton(
-                onClick = { showInfoDialog = true },
+                onClick = onShowInfo,
                 modifier = Modifier.align(Alignment.CenterEnd)
             ) {
                 Icon(
