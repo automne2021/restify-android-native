@@ -65,7 +65,8 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.9.6")
     implementation("androidx.core:core-splashscreen:1.2.0")
 
-    // SceneView for 3D model rendering
+    // SceneView for 3D model rendering and AR
+    implementation("io.github.sceneview:sceneview:2.2.1")
     implementation("io.github.sceneview:arsceneview:2.2.1")
 
     testImplementation(libs.junit)

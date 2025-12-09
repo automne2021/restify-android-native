@@ -1,6 +1,9 @@
 package com.restify.android.ui.screens.model3d
 
-import android.content.Context
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -8,6 +11,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,30 +19,72 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import kotlinx.coroutines.launch
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+
+// --- Imports Project Resources ---
 import com.restify.android.R
 import com.restify.android.ui.theme.*
-import io.github.sceneview.SceneView
+
+// --- Imports Google AR Core ---
+import com.google.ar.core.Frame
+import com.google.ar.core.Plane
+import com.google.ar.core.TrackingState
+
+// --- Imports SceneView ---
+import io.github.sceneview.ar.ARScene
+import io.github.sceneview.ar.arcore.createAnchorOrNull
+import io.github.sceneview.ar.node.AnchorNode
+import io.github.sceneview.rememberOnGestureListener
+import io.github.sceneview.rememberEngine
+import io.github.sceneview.rememberModelLoader
+import io.github.sceneview.rememberNodes
 import io.github.sceneview.node.ModelNode
-import kotlinx.coroutines.launch
-import com.restify.android.ui.theme.Black
-import com.restify.android.ui.theme.Orange
-import com.restify.android.ui.theme.Gray
-import com.restify.android.ui.theme.Cream
+import io.github.sceneview.math.Rotation
+import io.github.sceneview.math.Position
+
+import com.google.android.filament.LightManager
+import io.github.sceneview.node.LightNode
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Model3DScreen() {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    // Giả sử modelCategories đã được định nghĩa ở file khác
     var selectedModel by remember { mutableStateOf(modelCategories[0].items[0]) }
+    var isArMode by remember { mutableStateOf(false) }
+    var hasCameraPermission by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    // Trạng thái Loading chung cho cả màn hình
+    var isLoading by remember { mutableStateOf(false) }
+
+    // Check camera permission
+    LaunchedEffect(Unit) {
+        hasCameraPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        hasCameraPermission = isGranted
+        if (isGranted) isArMode = true
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -49,11 +95,7 @@ fun Model3DScreen() {
             ) {
                 Spacer(modifier = Modifier.height(20.dp))
 
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 0.dp)
-                ) {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
                     modelCategories.forEach { category ->
                         item {
                             ExpandableCategory(
@@ -61,9 +103,7 @@ fun Model3DScreen() {
                                 selectedModel = selectedModel,
                                 onModelSelected = { model ->
                                     selectedModel = model
-                                    scope.launch {
-                                        drawerState.close()
-                                    }
+                                    scope.launch { drawerState.close() }
                                 }
                             )
                         }
@@ -71,20 +111,45 @@ fun Model3DScreen() {
                 }
             }
         },
-        gesturesEnabled = false // Disable swipe gesture to prevent interference with model rotation
+        gesturesEnabled = false
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Gray)
         ) {
-            Model3DViewer(
-                model = selectedModel,
-                context = context,
-                modifier = Modifier.fillMaxSize()
-            )
+            // 1. Hiển thị Viewer
+            if (isArMode && hasCameraPermission) {
+                ArModelViewer(
+                    model = selectedModel,
+                    modifier = Modifier.fillMaxSize(),
+                    onLoadingChanged = { loading -> isLoading = loading }
+                )
+            } else {
+                Model3DViewer(
+                    model = selectedModel,
+                    modifier = Modifier.fillMaxSize(),
+                    onLoadingChanged = { loading -> isLoading = loading }
+                )
+            }
 
-            // Menu Button with proper padding
+            // 2. UI Loading
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Black.copy(alpha = 0.4f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = Orange)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Loading model...", color = Cream, fontSize = 14.sp)
+                    }
+                }
+            }
+
+            // 3. Các nút Menu/AR
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -92,42 +157,55 @@ fun Model3DScreen() {
                     .padding(top = 20.dp, start = 20.dp, end = 20.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                    Icon(
+                        painterResource(id = R.drawable.ic_menu),
+                        contentDescription = "Menu",
+                        tint = Cream,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+
                 IconButton(
                     onClick = {
-                        scope.launch {
-                            drawerState.open()
+                        if (!isArMode) {
+                            if (hasCameraPermission) isArMode = true
+                            else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        } else {
+                            isArMode = false
                         }
-                    }
+                    },
+                    modifier = Modifier.background(if (isArMode) Orange else Cream, CircleShape)
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_menu),
-                        contentDescription = "Menu",
-                        tint = Gray,
-                        modifier = Modifier.size(30.dp)
+                        painterResource(id = R.drawable.ic_cube),
+                        contentDescription = "AR Mode",
+                        tint = Black,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 40.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(5.dp),
-                    color = Black,
-                    modifier = Modifier.border(1.dp, Cream, RoundedCornerShape(5.dp))
+            // 4. Hướng dẫn đáy màn hình
+            if (!isLoading && !isArMode) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 40.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Drag to rotate  •  Pinch to zoom",
-                        style = TextStyle(
-                            color = Cream,
-                            fontSize = 14.sp
-                        ),
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(5.dp),
+                        color = Black.copy(alpha = 0.7f),
+                        modifier = Modifier.border(1.dp, Cream, RoundedCornerShape(5.dp))
+                    ) {
+                        Text(
+                            text = "Drag to rotate  •  Pinch to zoom",
+                            style = TextStyle(color = Cream, fontSize = 14.sp),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
+                    }
                 }
             }
         }
@@ -172,7 +250,7 @@ fun ExpandableCategory(
                 modifier = Modifier.weight(1f)
             )
             Icon(
-                painter = painterResource(id = R.drawable.ic_chevron_down),
+                imageVector = Icons.Default.KeyboardArrowDown,
                 contentDescription = "Expand",
                 tint = Gray,
                 modifier = Modifier
@@ -205,88 +283,209 @@ fun ExpandableCategory(
 }
 
 @Composable
+fun ArModelViewer(
+    model: Model3DItem,
+    modifier: Modifier = Modifier,
+    onLoadingChanged: (Boolean) -> Unit
+) {
+    key(model.path) {
+        val engine = rememberEngine()
+        val modelLoader = rememberModelLoader(engine)
+        val childNodes = rememberNodes()
+
+        LaunchedEffect(Unit) {
+            // --- 1. ĐÈN CHÍNH (Key Light) ---
+            val lightNodeFront = LightNode(
+                engine = engine,
+                type = LightManager.Type.DIRECTIONAL
+            ) {
+                intensity(150000.0f) // Tăng từ 110k lên 150k
+                color(1.0f, 1.0f, 0.9f) // Màu hơi vàng nhẹ cho tự nhiên
+            }
+            lightNodeFront.rotation = Rotation(x = -45.0f, y = 45.0f, z = 0.0f)
+            childNodes.add(lightNodeFront)
+
+            // --- 2. ĐÈN PHỤ (Fill Light) ---
+            val lightNodeBack = LightNode(
+                engine = engine,
+                type = LightManager.Type.DIRECTIONAL
+            ) {
+                intensity(150000.0f)
+                color(0.9f, 0.9f, 1.0f)
+            }
+            // Chiếu từ hướng đối diện
+            lightNodeBack.rotation = Rotation(x = -45.0f, y = -135.0f, z = 0.0f)
+            childNodes.add(lightNodeBack)
+        }
+
+        var modelNode by remember { mutableStateOf<ModelNode?>(null) }
+        var isModelPlaced by remember { mutableStateOf(false) }
+        var isTracking by remember { mutableStateOf(false) }
+        var currentFrame by remember { mutableStateOf<Frame?>(null) }
+
+        LaunchedEffect(model.path) {
+            onLoadingChanged(true)
+            try {
+                val instance = modelLoader.loadModelInstance(model.path)
+
+                if (instance != null) {
+                    modelNode = ModelNode(
+                        modelInstance = instance,
+                        scaleToUnits = 0.5f,
+                        autoAnimate = false
+                    ).apply {
+                        isEditable = true
+
+                        val bounds = instance.asset.boundingBox
+                        val halfExtent = bounds.halfExtent
+                        val center = bounds.center
+
+                        collisionShape = io.github.sceneview.collision.Box(
+                            // Tham số 1: Size (Vector3)
+                            io.github.sceneview.collision.Vector3(
+                                halfExtent[0] * 2,
+                                halfExtent[1] * 2,
+                                halfExtent[2] * 2
+                            ),
+                            // Tham số 2: Center (Vector3)
+                            io.github.sceneview.collision.Vector3(
+                                center[0],
+                                center[1],
+                                center[2]
+                            )
+                        )
+
+                        editableScaleRange = 0.2f..1.5f
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                onLoadingChanged(false)
+            }
+        }
+
+        Box(modifier = modifier) {
+            ARScene(
+                modifier = Modifier.fillMaxSize(),
+                childNodes = childNodes,
+                engine = engine,
+                modelLoader = modelLoader,
+                planeRenderer = true,
+                onSessionUpdated = { session, frame ->
+                    currentFrame = frame
+                    if (frame.camera.trackingState == TrackingState.TRACKING) {
+                        isTracking = true
+                    }
+                },
+                onGestureListener = rememberOnGestureListener(
+                    onSingleTapConfirmed = { motionEvent, node ->
+                        if (!isModelPlaced && node == null) {
+                            val frame = currentFrame ?: return@rememberOnGestureListener
+                            val hitTestResult = frame.hitTest(motionEvent)
+
+                            hitTestResult.firstOrNull {
+                                it.trackable is Plane && ((it.trackable as Plane).isPoseInPolygon(it.hitPose))
+                            }?.let { hitResult ->
+                                hitResult.createAnchorOrNull()?.let { anchor ->
+                                    modelNode?.let { newNode ->
+                                        val anchorNode = AnchorNode(engine = engine, anchor = anchor)
+                                        anchorNode.addChildNode(newNode)
+                                        childNodes += anchorNode
+                                        isModelPlaced = true
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                )
+            )
+
+            // UI Hướng dẫn AR
+            if (!isModelPlaced) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 100.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Black.copy(alpha = 0.6f)
+                    ) {
+                        Text(
+                            text = if (isTracking) "Tap on the floor to set the object" else "Move to scan the floor...",
+                            color = Color.White,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 50.dp),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    Text(
+                        text = "Use 2 fingers to rotate & zoom",
+                        color = Color.White,
+                        style = TextStyle(
+                            shadow = Shadow(blurRadius = 3f)
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun Model3DViewer(
     model: Model3DItem,
-    context: Context,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onLoadingChanged: (Boolean) -> Unit
 ) {
-    var sceneView by remember { mutableStateOf<SceneView?>(null) }
-    var currentModelNode by remember { mutableStateOf<ModelNode?>(null) }
-    val modelKey = remember(model.path) { model.path }
+    val engine = rememberEngine()
+    val modelLoader = rememberModelLoader(engine)
+    var modelNode by remember { mutableStateOf<ModelNode?>(null) }
+    val childNodes = rememberNodes()
 
-    LaunchedEffect(modelKey) {
-        sceneView?.let { scene ->
-            // Properly remove old model node
-            currentModelNode?.let { oldNode ->
-                try {
-                    // Clear the model node completely
-                    scene.childNodes.forEach { node ->
-                        scene.removeChildNode(node)
-                        node.destroy()
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-                currentModelNode = null
+    LaunchedEffect(model.path) {
+        onLoadingChanged(true)
+        try {
+            modelNode?.let { node ->
+                childNodes.remove(node)
+                // node.destroy()
             }
+            modelNode = null
 
-            try {
-                val newModelInstance = scene.modelLoader.createModelInstance(
-                    assetFileLocation = model.path
-                )
-
+            val instance = modelLoader.loadModelInstance(model.path)
+            if (instance != null) {
                 val newNode = ModelNode(
-                    modelInstance = newModelInstance,
-                    scaleToUnits = 1f
+                    modelInstance = instance,
+                    scaleToUnits = 1.0f
                 ).apply {
                     isEditable = true
+                    position = Position(0f, -0.5f, 0f)
+                    rotation = Rotation(0f, 0f, 0f)
                 }
-                scene.addChildNode(newNode)
-                currentModelNode = newNode
-            } catch (e: Exception) {
-                e.printStackTrace()
+                childNodes += newNode
+                modelNode = newNode
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            onLoadingChanged(false)
         }
     }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            try {
-                currentModelNode?.let { node ->
-                    sceneView?.childNodes?.forEach { n ->
-                        sceneView?.removeChildNode(n)
-                        n.destroy()
-                    }
-                }
-                currentModelNode = null
-                sceneView?.destroy()
-                sceneView = null
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    AndroidView(
-        factory = { ctx ->
-            SceneView(ctx).apply {
-                sceneView = this
-            }
-        },
+    io.github.sceneview.Scene(
         modifier = modifier,
-        onRelease = { view ->
-            try {
-                currentModelNode?.let { node ->
-                    view.childNodes.forEach { n ->
-                        view.removeChildNode(n)
-                        n.destroy()
-                    }
-                }
-                currentModelNode = null
-                view.destroy()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        engine = engine,
+        modelLoader = modelLoader,
+        childNodes = childNodes,
+        onViewUpdated = { }
     )
 }
